@@ -1,0 +1,152 @@
+version: '3'
+services:
+
+  # router
+  router:
+    image: mongo:6.0.1
+    container_name: router
+    command: mongos --port 27017 --configdb config_server_rs_1/config_server_1:27017,config_server_2:27017 --bind_ip_all
+    restart: always
+    volumes:
+      - ./init:/init
+      - router_db:/data/db
+      - router_config:/data/configdb
+    ports:
+      - 27000:27017
+
+  # config servers
+  config_server_1:
+    image: mongo:6.0.1
+    container_name: config_server_1
+    command: mongod --port 27017 --configsvr --replSet config_server_rs_1
+    restart: always
+    volumes:
+      - ./init:/init
+      - config_server_1_db:/data/db
+      - config_server_1_config:/data/configdb
+    ports:
+      - 27001:27017
+    links:
+      - shard_1_node_1
+      - shard_2_node_1
+  config_server_2:
+    image: mongo:6.0.1
+    container_name: config_server_2
+    command: mongod --port 27017 --configsvr --replSet config_server_rs_1
+    restart: always
+    volumes:
+      - ./init:/init
+      - config_server_2_db:/data/db
+      - config_server_2_config:/data/configdb
+    ports:
+      - 27002:27017
+    links:
+      - config_server_1
+
+  # shards
+  # shard_rs_1
+  shard_1_node_1:
+    image: mongo:6.0.1
+    container_name: shard_1_node_1
+    command: mongod --port 27017 --shardsvr --replSet shard_rs_1
+    restart: always
+    volumes:
+      - ./init:/init
+      - shard_1_node_1_db:/data/db
+      - shard_1_node_1_config:/data/configdb
+    ports:
+      - 27003:27017
+    links:
+      - shard_1_node_2
+      - shard_1_node_3
+  shard_1_node_2:
+    image: mongo:6.0.1
+    container_name: shard_1_node_2
+    command: mongod --port 27017 --shardsvr --replSet shard_rs_1
+    restart: always
+    volumes:
+      - ./init:/init
+      - shard_1_node_2_db:/data/db
+      - shard_1_node_2_config:/data/configdb
+    ports:
+      - 27004:27017
+  shard_1_node_3:
+    image: mongo:6.0.1
+    container_name: shard_1_node_3
+    command: mongod --port 27017 --shardsvr --replSet shard_rs_1
+    restart: always
+    volumes:
+      - ./init:/init
+      - shard_1_node_3_db:/data/db
+      - shard_1_node_3_config:/data/configdb
+    ports:
+      - 27005:27017
+
+  # shard_rs_2
+  shard_2_node_1:
+    image: mongo:6.0.1
+    container_name: shard_2_node_1
+    command: mongod --port 27017 --shardsvr --replSet shard_rs_2
+    restart: always
+    volumes:
+      - ./init:/init
+      - shard_2_node_1_db:/data/db
+      - shard_2_node_1_config:/data/configdb
+    ports:
+      - 27006:27017
+    links:
+      - shard_2_node_2
+      - shard_2_node_3
+  shard_2_node_2:
+    image: mongo:6.0.1
+    container_name: shard_2_node_2
+    command: mongod --port 27017 --shardsvr --replSet shard_rs_2
+    restart: always
+    volumes:
+      - ./init:/init
+      - shard_2_node_2_db:/data/db
+      - shard_2_node_2_config:/data/configdb
+    ports:
+      - 27007:27017
+  shard_2_node_3:
+    image: mongo:6.0.1
+    container_name: shard_2_node_3
+    command: mongod --port 27017 --shardsvr --replSet shard_rs_2
+    restart: always
+    volumes:
+      - ./init:/init
+      - shard_2_node_3_db:/data/db
+      - shard_2_node_3_config:/data/configdb
+    ports:
+      - 27008:27017
+
+volumes:
+  router_db:
+  router_config:
+
+  config_server_1_db:
+  config_server_1_config:
+
+  config_server_2_db:
+  config_server_2_config:
+
+  shard_1_node_1_db:
+  shard_1_node_1_config:
+
+  shard_1_node_2_db:
+  shard_1_node_2_config:
+
+  shard_1_node_3_db:
+  shard_1_node_3_config:
+
+  shard_1_node_4_db:
+  shard_1_node_4_config:
+
+  shard_2_node_1_db:
+  shard_2_node_1_config:
+
+  shard_2_node_2_db:
+  shard_2_node_2_config:
+
+  shard_2_node_3_db:
+  shard_2_node_3_config:
